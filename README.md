@@ -1,5 +1,11 @@
 # Network Logger
 
+## 📷 Screenshots
+
+|![Screenshot 1](https://raw.githubusercontent.com/TheMisir/flutter-network-logger/master/screenshots/1.jpg)|![Screenshot 2](https://raw.githubusercontent.com/TheMisir/flutter-network-logger/master/screenshots/2.jpg)|
+|-|-|
+|Log feed|Log details|
+
 ## 🚀 Getting Started!
 
 You are 3 steps ahead from viewing http traffic logs on well designed GUI.
