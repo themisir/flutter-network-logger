@@ -22,7 +22,8 @@ class NetworkEvent {
 }
 
 class Headers {
-  Headers(this.entries);
+  Headers(Iterable<MapEntry<String, String>> entries)
+      : this.entries = entries.toList();
   Headers.fromMap(Map<String, String> map) : this.entries = map.entries;
 
   final List<MapEntry<String, String>> entries;

@@ -4,11 +4,10 @@ import '../network_logger.dart';
 
 class DioNetworkLogger extends dio.Interceptor {
   final NetworkEventList eventList;
+  final _requests = <dio.RequestOptions, NetworkEvent>{};
 
   DioNetworkLogger({NetworkEventList eventList})
       : this.eventList = eventList ?? NetworkLogger.instance;
-
-  Map<dio.RequestOptions, NetworkEvent> _requests;
 
   @override
   Future onRequest(dio.RequestOptions options) {
@@ -21,10 +20,11 @@ class DioNetworkLogger extends dio.Interceptor {
   Future onResponse(dio.Response response) {
     var event = _requests[response.request];
     if (event != null) {
-      event.response = response.toResponse();
+      event.response = response.toResponse(event.request);
       eventList.updated(event);
     } else {
-      eventList.add(NetworkEvent.response(response.toResponse()));
+      var request = response.request.toRequest();
+      eventList.add(NetworkEvent.response(response.toResponse(request)));
     }
     return Future.value(response);
   }
@@ -35,14 +35,15 @@ class DioNetworkLogger extends dio.Interceptor {
     if (event != null) {
       event.error = NetworkError(
         request: event.request,
-        response: err.response?.toResponse(),
+        response: err.response?.toResponse(event.request),
         message: err.toString(),
       );
       eventList.updated(event);
     } else {
+      var request = err.request.toRequest();
       eventList.add(NetworkEvent.error(NetworkError(
-        request: err.request.toRequest(),
-        response: err.response?.toResponse(),
+        request: request,
+        response: err.response?.toResponse(request),
         message: err.toString(),
       )));
     }
@@ -55,18 +56,23 @@ extension _RequestOptionsX on dio.RequestOptions {
         uri: uri.toString(),
         data: data,
         method: method,
-        headers: Headers.fromMap(headers.map(
-          (key, value) => MapEntry(key, '$value'),
+        headers: Headers(headers.entries.map(
+          (kv) => MapEntry(kv.key, '${kv.value}'),
         )),
       );
 }
 
 extension _ResponseX on dio.Response {
-  Response toResponse() => Response(
+  Response toResponse(Request request) => Response(
         data: data,
-        headers: Headers(headers.map.entries.fold(
-          [],
-          (p, e) => p..addAll(e.value.map((v) => MapEntry(e.key, v))),
-        )),
+        statusCode: statusCode,
+        statusMessage: statusMessage,
+        request: request,
+        headers: Headers(
+          headers.map.entries.fold<List<MapEntry<String, String>>>(
+            [],
+            (p, e) => p..addAll(e.value.map((v) => MapEntry(e.key, v))),
+          ),
+        ),
       );
 }
