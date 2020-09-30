@@ -1,10 +1,11 @@
 # Network Logger
+Network logger with well designed user interface to inspect network traffic logs. Included with Dio interceptor. You can start and inspect traffic just by writing [2 lines](https://github.com/TheMisir/flutter-network-logger/blob/master/example/lib/main.dart#L30-L31) of code.
 
 ## 📷 Screenshots
 
-|![Screenshot 1](https://raw.githubusercontent.com/TheMisir/flutter-network-logger/master/screenshots/1.jpg)|![Screenshot 2](https://raw.githubusercontent.com/TheMisir/flutter-network-logger/master/screenshots/2.jpg)|
-|-|-|
 |Log feed|Log details|
+|:-:|:-:|
+|<img width="200" src="https://raw.githubusercontent.com/TheMisir/flutter-network-logger/master/screenshots/1.jpg" />|<img width="200" src="https://raw.githubusercontent.com/TheMisir/flutter-network-logger/master/screenshots/2.jpg" />|
 
 ## 🚀 Getting Started!
 
