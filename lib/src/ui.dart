@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'enumerate_items.dart';
 import 'network_event.dart';
@@ -233,11 +234,20 @@ class NetworkLoggerEventScreen extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'monospace',
-          fontFamilyFallback: ['sans-serif'],
+      child: GestureDetector(
+        onLongPress: () {
+          Clipboard.setData(ClipboardData(text: text));
+          Scaffold.of(context).showSnackBar(SnackBar(
+            content: Text('Copied to clipboard'),
+            behavior: SnackBarBehavior.floating,
+          ));
+        },
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontFamily: 'monospace',
+            fontFamilyFallback: ['sans-serif'],
+          ),
         ),
       ),
     );
@@ -257,13 +267,13 @@ class NetworkLoggerEventScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
-            children: headers.map((e) => Text(e.key)).toList(),
+            children: headers.map((e) => SelectableText(e.key)).toList(),
           ),
           SizedBox(width: 15),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
-            children: headers.map((e) => Text(e.value)).toList(),
+            children: headers.map((e) => SelectableText(e.value)).toList(),
           ),
         ],
       ),
@@ -289,7 +299,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyText1,
               ),
               SizedBox(width: 15),
-              Expanded(child: Text(event.request.uri.toString())),
+              Expanded(child: SelectableText(event.request.uri.toString())),
             ],
           ),
         ),
@@ -392,12 +402,13 @@ class NetworkLoggerEventScreen extends StatelessWidget {
           title: Text('Log Entry'),
           bottom: bottom,
         ),
-        body: TabBarView(
-          children: [
-            buildRequestView(context),
-            if (showResponse) buildResponseView(context),
-          ],
-        ),
+        body: Builder(
+            builder: (context) => TabBarView(
+                  children: <Widget>[
+                    buildRequestView(context),
+                    if (showResponse) buildResponseView(context),
+                  ],
+                )),
       ),
     );
   }
