@@ -1,0 +1,17 @@
+name: network_logger
+description: A new Flutter package project.
+version: 0.0.1
+homepage: https://github.com/themisir/flutter-network-logger
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.17.0 <2.0.0"
+
+dependencies:
+  dio: ^3.0.10
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
