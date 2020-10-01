@@ -1,11 +1,16 @@
-## [0.0.1]
+## [0.0.5]
 
-* Initial release
+* Updated Dio interceptor and log entry interface
+* Added documentation comments
+
+## [0.0.4]
+
+* Selectable fields and copy body to clipboard
 
 ## [0.0.3]
 
 * Improved README
 
-## [0.0.4]
+## [0.0.1]
 
-* Selectable fields and copy body to clipboard
+* Initial release
