@@ -11,7 +11,7 @@ Network logger with well designed user interface to inspect network traffic logs
 
 You are 3 steps ahead from viewing http traffic logs on well designed GUI.
 
-### 1. Install `network_logger`.
+### 1. Install **network_logger**.
 Check [this guide](https://pub.dev/packages/network_logger/install) to install **network_logger** to your flutter project.
 
 ### 2. Add `DioNetworkLogger` interceptor to dio client.
