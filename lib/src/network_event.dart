@@ -2,18 +2,6 @@ class NetworkEvent {
   NetworkEvent({this.request, this.response, this.error, this.timestamp});
   NetworkEvent.now({this.request, this.response, this.error})
       : this.timestamp = DateTime.now();
-  NetworkEvent.request(this.request, [DateTime timestamp])
-      : this.response = null,
-        this.error = null,
-        this.timestamp = timestamp ?? DateTime.now();
-  NetworkEvent.response(this.response, [DateTime timestamp])
-      : this.request = response.request,
-        this.error = null,
-        this.timestamp = timestamp ?? DateTime.now();
-  NetworkEvent.error(this.error, [DateTime timestamp])
-      : this.request = error.request,
-        this.response = error.response,
-        this.timestamp = timestamp ?? DateTime.now();
 
   Request request;
   Response response;
@@ -51,14 +39,12 @@ class Request {
 
 class Response {
   Response({
-    this.request,
     this.headers,
     this.statusCode,
     this.statusMessage,
     this.data,
   });
 
-  final Request request;
   final Headers headers;
   final int statusCode;
   final String statusMessage;
@@ -66,10 +52,8 @@ class Response {
 }
 
 class NetworkError {
-  NetworkError({this.request, this.response, this.message});
+  NetworkError({this.message});
 
-  final Request request;
-  final Response response;
   final String message;
 
   @override

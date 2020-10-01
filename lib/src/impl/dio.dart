@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart' as dio;
+
 import '../network_event.dart';
 import '../network_logger.dart';
 
@@ -11,8 +12,9 @@ class DioNetworkLogger extends dio.Interceptor {
 
   @override
   Future onRequest(dio.RequestOptions options) {
-    var event = NetworkEvent.request(options.toRequest());
-    eventList.add(_requests[options] = event);
+    eventList.add(_requests[options] = NetworkEvent.now(
+      request: options.toRequest(),
+    ));
     return Future.value(options);
   }
 
@@ -20,11 +22,13 @@ class DioNetworkLogger extends dio.Interceptor {
   Future onResponse(dio.Response response) {
     var event = _requests[response.request];
     if (event != null) {
-      event.response = response.toResponse(event.request);
-      eventList.updated(event);
+      _requests.remove(response.request);
+      eventList.updated(event..response = response.toResponse());
     } else {
-      var request = response.request.toRequest();
-      eventList.add(NetworkEvent.response(response.toResponse(request)));
+      eventList.add(NetworkEvent.now(
+        request: response.request.toRequest(),
+        response: response.toResponse(),
+      ));
     }
     return Future.value(response);
   }
@@ -33,19 +37,14 @@ class DioNetworkLogger extends dio.Interceptor {
   Future onError(dio.DioError err) {
     var event = _requests[err.request];
     if (event != null) {
-      event.error = NetworkError(
-        request: event.request,
-        response: err.response?.toResponse(event.request),
-        message: err.toString(),
-      );
-      eventList.updated(event);
+      _requests.remove(err.request);
+      eventList.updated(event..error = err.toNetworkError());
     } else {
-      var request = err.request.toRequest();
-      eventList.add(NetworkEvent.error(NetworkError(
-        request: request,
-        response: err.response?.toResponse(request),
-        message: err.toString(),
-      )));
+      eventList.add(NetworkEvent.now(
+        request: err.request.toRequest(),
+        response: err.response?.toResponse(),
+        error: err.toNetworkError(),
+      ));
     }
     return Future.value(err);
   }
@@ -63,11 +62,10 @@ extension _RequestOptionsX on dio.RequestOptions {
 }
 
 extension _ResponseX on dio.Response {
-  Response toResponse(Request request) => Response(
+  Response toResponse() => Response(
         data: data,
         statusCode: statusCode,
         statusMessage: statusMessage,
-        request: request,
         headers: Headers(
           headers.map.entries.fold<List<MapEntry<String, String>>>(
             [],
@@ -75,4 +73,8 @@ extension _ResponseX on dio.Response {
           ),
         ),
       );
+}
+
+extension _DioErrorX on dio.DioError {
+  NetworkError toNetworkError() => NetworkError(message: toString());
 }
