@@ -8,9 +8,11 @@ import 'enumerate_items.dart';
 import 'network_event.dart';
 import 'network_logger.dart';
 
+/// Overlay for [NetworkLoggerButton].
 class NetworkLoggerOverlay extends StatelessWidget {
   NetworkLoggerOverlay._({Key key}) : super(key: key);
 
+  /// Attach overlay to specified [context].
   static OverlayEntry attachTo(
     BuildContext context, {
     bool rootOverlay = true,
@@ -33,6 +35,7 @@ class NetworkLoggerOverlay extends StatelessWidget {
   }
 }
 
+/// [FloatingActionButton] that opens [NetworkLoggerScreen] when pressed.
 class NetworkLoggerButton extends StatefulWidget {
   final NetworkEventList eventList;
   final Duration blinkPeriod;
@@ -56,7 +59,7 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
   bool _visible = true;
   int _blink = 0;
 
-  Future<void> press() async {
+  Future<void> _press() async {
     setState(() {
       _visible = false;
     });
@@ -107,20 +110,23 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
               (_blink % 2 == 0) ? Icons.cloud : Icons.cloud_queue,
               color: Colors.white,
             ),
-            onPressed: press,
+            onPressed: _press,
             backgroundColor: widget.color,
           )
         : SizedBox();
   }
 }
 
+/// Screen that displays log entries list.
 class NetworkLoggerScreen extends StatelessWidget {
   NetworkLoggerScreen({Key key, NetworkEventList eventList})
       : this.eventList = eventList ?? NetworkLogger.instance,
         super(key: key);
 
+  /// Event list to listen for event changes.
   final NetworkEventList eventList;
 
+  /// Opens screen.
   static Future<void> open(BuildContext context) {
     return Navigator.push(
       context,
@@ -197,9 +203,11 @@ String _timeDifference(DateTime time, [DateTime origin]) {
 
 final _jsonEncoder = JsonEncoder.withIndent('  ');
 
+/// Screen that displays log entry details.
 class NetworkLoggerEventScreen extends StatelessWidget {
   const NetworkLoggerEventScreen({Key key, this.event}) : super(key: key);
 
+  /// Opens screen.
   static Future<void> open(
     BuildContext context,
     NetworkEvent event,
@@ -218,6 +226,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
     );
   }
 
+  /// Which event to display details for.
   final NetworkEvent event;
 
   Widget buildBodyViewer(BuildContext context, dynamic body) {
@@ -414,11 +423,15 @@ class NetworkLoggerEventScreen extends StatelessWidget {
   }
 }
 
+/// Widget builder that re-builds widget repeatedly with [duration] interval.
 class AutoUpdate extends StatefulWidget {
-  final Duration duration;
-  final WidgetBuilder builder;
-
   const AutoUpdate({Key key, this.duration, this.builder}) : super(key: key);
+
+  /// Re-build interval.
+  final Duration duration;
+
+  /// Widget builder to build widget.
+  final WidgetBuilder builder;
 
   @override
   _AutoUpdateState createState() => _AutoUpdateState();
@@ -427,7 +440,7 @@ class AutoUpdate extends StatefulWidget {
 class _AutoUpdateState extends State<AutoUpdate> {
   Timer _timer;
 
-  void setTimer() {
+  void _setTimer() {
     _timer = Timer.periodic(widget.duration, (timer) {
       setState(() {});
     });
@@ -437,14 +450,14 @@ class _AutoUpdateState extends State<AutoUpdate> {
   void didUpdateWidget(AutoUpdate old) {
     if (old.duration != widget.duration) {
       _timer?.cancel();
-      setTimer();
+      _setTimer();
     }
     super.didUpdateWidget(old);
   }
 
   @override
   void initState() {
-    setTimer();
+    _setTimer();
     super.initState();
   }
 
