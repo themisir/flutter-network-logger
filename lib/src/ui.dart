@@ -31,7 +31,7 @@ class NetworkLoggerOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(right: 30, bottom: 50, child: NetworkLoggerButton());
+    return Positioned(right: 30, bottom: 100, child: NetworkLoggerButton());
   }
 }
 
