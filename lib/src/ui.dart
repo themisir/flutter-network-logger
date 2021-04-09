@@ -77,7 +77,7 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
   @override
   void initState() {
     _subscription = NetworkLogger.instance.stream.listen((event) {
-      if (event != null && mounted) {
+      if (mounted) {
         setState(() {
           _blink = _blink % 2 == 0 ? 6 : 5;
         });
@@ -205,7 +205,8 @@ final _jsonEncoder = JsonEncoder.withIndent('  ');
 
 /// Screen that displays log entry details.
 class NetworkLoggerEventScreen extends StatelessWidget {
-  const NetworkLoggerEventScreen({Key? key, required this.event}) : super(key: key);
+  const NetworkLoggerEventScreen({Key? key, required this.event})
+      : super(key: key);
 
   /// Opens screen.
   static Future<void> open(
@@ -246,7 +247,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
       child: GestureDetector(
         onLongPress: () {
           Clipboard.setData(ClipboardData(text: text));
-          Scaffold.of(context).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Copied to clipboard'),
             behavior: SnackBarBehavior.floating,
           ));
@@ -425,7 +426,8 @@ class NetworkLoggerEventScreen extends StatelessWidget {
 
 /// Widget builder that re-builds widget repeatedly with [duration] interval.
 class AutoUpdate extends StatefulWidget {
-  const AutoUpdate({Key? key, required this.duration, required this.builder}) : super(key: key);
+  const AutoUpdate({Key? key, required this.duration, required this.builder})
+      : super(key: key);
 
   /// Re-build interval.
   final Duration duration;
