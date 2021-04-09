@@ -38,7 +38,7 @@ class UpdateEvent {
   const UpdateEvent(this.event);
   const UpdateEvent.clear() : this.event = null;
 
-  final NetworkEvent event;
+  final NetworkEvent? event;
 }
 
 /// Network logger interface.

@@ -7,46 +7,52 @@ class DioNetworkLogger extends dio.Interceptor {
   final NetworkEventList eventList;
   final _requests = <dio.RequestOptions, NetworkEvent>{};
 
-  DioNetworkLogger({NetworkEventList eventList})
+  DioNetworkLogger({NetworkEventList? eventList})
       : this.eventList = eventList ?? NetworkLogger.instance;
 
   @override
-  Future onRequest(dio.RequestOptions options) {
+  Future<void> onRequest(
+      dio.RequestOptions options, dio.RequestInterceptorHandler handler) async {
     eventList.add(_requests[options] = NetworkEvent.now(
       request: options.toRequest(),
+      error: null,
+      response: null,
     ));
     return Future.value(options);
   }
 
   @override
-  Future onResponse(dio.Response response) {
-    var event = _requests[response.request];
+  void onResponse(
+    dio.Response response,
+    dio.ResponseInterceptorHandler handler,
+  ) {
+    final req = response.requestOptions.toRequest();
+    var event = _requests[req];
     if (event != null) {
-      _requests.remove(response.request);
+      _requests.remove(req);
       eventList.updated(event..response = response.toResponse());
     } else {
       eventList.add(NetworkEvent.now(
-        request: response.request.toRequest(),
+        request: req,
         response: response.toResponse(),
       ));
     }
-    return Future.value(response);
   }
 
   @override
-  Future onError(dio.DioError err) {
-    var event = _requests[err.request];
+  void onError(dio.DioError err, dio.ErrorInterceptorHandler handler) {
+    final req = err.requestOptions.toRequest();
+    var event = _requests[req];
     if (event != null) {
-      _requests.remove(err.request);
+      _requests.remove(req);
       eventList.updated(event..error = err.toNetworkError());
     } else {
       eventList.add(NetworkEvent.now(
-        request: err.request.toRequest(),
+        request: req,
         response: err.response?.toResponse(),
         error: err.toNetworkError(),
       ));
     }
-    return Future.value(err);
   }
 }
 
@@ -64,8 +70,8 @@ extension _RequestOptionsX on dio.RequestOptions {
 extension _ResponseX on dio.Response {
   Response toResponse() => Response(
         data: data,
-        statusCode: statusCode,
-        statusMessage: statusMessage,
+        statusCode: statusCode ?? -1,
+        statusMessage: statusMessage ?? 'unkown',
         headers: Headers(
           headers.map.entries.fold<List<MapEntry<String, String>>>(
             [],

@@ -10,7 +10,7 @@ import 'network_logger.dart';
 
 /// Overlay for [NetworkLoggerButton].
 class NetworkLoggerOverlay extends StatelessWidget {
-  NetworkLoggerOverlay._({Key key}) : super(key: key);
+  NetworkLoggerOverlay._({Key? key}) : super(key: key);
 
   /// Attach overlay to specified [context].
   static OverlayEntry attachTo(
@@ -23,7 +23,7 @@ class NetworkLoggerOverlay extends StatelessWidget {
     );
     // insert on next frame
     Future.delayed(Duration.zero, () {
-      Overlay.of(context, rootOverlay: rootOverlay).insert(entry);
+      Overlay.of(context, rootOverlay: rootOverlay)?.insert(entry);
     });
     // return
     return entry;
@@ -31,21 +31,21 @@ class NetworkLoggerOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(right: 30, bottom: 50, child: NetworkLoggerButton());
+    return Positioned(right: 30, bottom: 100, child: NetworkLoggerButton());
   }
 }
 
 /// [FloatingActionButton] that opens [NetworkLoggerScreen] when pressed.
 class NetworkLoggerButton extends StatefulWidget {
-  final NetworkEventList eventList;
+  final NetworkEventList? eventList;
   final Duration blinkPeriod;
   final Color color;
 
   NetworkLoggerButton({
-    Key key,
+    Key? key,
     this.color = Colors.deepPurple,
     this.blinkPeriod = const Duration(seconds: 1, microseconds: 500),
-    NetworkEventList eventList,
+    NetworkEventList? eventList,
   })  : this.eventList = eventList ?? NetworkLogger.instance,
         super(key: key);
 
@@ -54,8 +54,8 @@ class NetworkLoggerButton extends StatefulWidget {
 }
 
 class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
-  StreamSubscription _subscription;
-  Timer _blinkTimer;
+  StreamSubscription? _subscription;
+  Timer? _blinkTimer;
   bool _visible = true;
   int _blink = 0;
 
@@ -97,8 +97,8 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
 
   @override
   void dispose() {
-    _blinkTimer.cancel();
-    _subscription.cancel();
+    _blinkTimer?.cancel();
+    _subscription?.cancel();
     super.dispose();
   }
 
@@ -119,7 +119,7 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
 
 /// Screen that displays log entries list.
 class NetworkLoggerScreen extends StatelessWidget {
-  NetworkLoggerScreen({Key key, NetworkEventList eventList})
+  NetworkLoggerScreen({Key? key, NetworkEventList? eventList})
       : this.eventList = eventList ?? NetworkLogger.instance,
         super(key: key);
 
@@ -157,11 +157,11 @@ class NetworkLoggerScreen extends StatelessWidget {
             (context, item) => ListTile(
               key: ValueKey(item.request),
               title: Text(
-                item.request.method,
+                item.request!.method,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               subtitle: Text(
-                item.request.uri.toString(),
+                item.request!.uri.toString(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -174,7 +174,7 @@ class NetworkLoggerScreen extends StatelessWidget {
               ),
               trailing: AutoUpdate(
                 duration: Duration(seconds: 1),
-                builder: (context) => Text(_timeDifference(item.timestamp)),
+                builder: (context) => Text(_timeDifference(item.timestamp!)),
               ),
               onTap: () => NetworkLoggerEventScreen.open(
                 context,
@@ -189,7 +189,7 @@ class NetworkLoggerScreen extends StatelessWidget {
   }
 }
 
-String _timeDifference(DateTime time, [DateTime origin]) {
+String _timeDifference(DateTime time, [DateTime? origin]) {
   origin ??= DateTime.now();
   var delta = origin.difference(time);
   if (delta.inSeconds < 90) {
@@ -205,7 +205,7 @@ final _jsonEncoder = JsonEncoder.withIndent('  ');
 
 /// Screen that displays log entry details.
 class NetworkLoggerEventScreen extends StatelessWidget {
-  const NetworkLoggerEventScreen({Key key, this.event}) : super(key: key);
+  const NetworkLoggerEventScreen({Key? key, required this.event}) : super(key: key);
 
   /// Opens screen.
   static Future<void> open(
@@ -304,11 +304,11 @@ class NetworkLoggerEventScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                event.request.method,
+                event.request!.method,
                 style: Theme.of(context).textTheme.bodyText1,
               ),
               SizedBox(width: 15),
-              Expanded(child: SelectableText(event.request.uri.toString())),
+              Expanded(child: SelectableText(event.request!.uri.toString())),
             ],
           ),
         ),
@@ -320,12 +320,12 @@ class NetworkLoggerEventScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Text(event.timestamp.toString()),
         ),
-        if (event.request.headers.isNotEmpty) ...[
+        if (event.request!.headers.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 10, 15, 5),
             child: Text('HEADERS', style: Theme.of(context).textTheme.caption),
           ),
-          buildHeadersViewer(context, event.request.headers.entries),
+          buildHeadersViewer(context, event.request!.headers.entries),
         ],
         if (event.error != null) ...[
           Padding(
@@ -344,7 +344,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(15, 10, 15, 5),
           child: Text('BODY', style: Theme.of(context).textTheme.caption),
         ),
-        buildBodyViewer(context, event.request.data),
+        buildBodyViewer(context, event.request!.data),
       ],
     );
   }
@@ -364,29 +364,29 @@ class NetworkLoggerEventScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                event.response.statusCode.toString(),
+                event.response!.statusCode.toString(),
                 style: Theme.of(context).textTheme.bodyText1,
               ),
               SizedBox(width: 15),
-              Expanded(child: Text(event.response.statusMessage)),
+              Expanded(child: Text(event.response!.statusMessage)),
             ],
           ),
         ),
-        if (event.response.headers.isNotEmpty) ...[
+        if (event.response?.headers.isNotEmpty ?? false) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 10, 15, 5),
             child: Text('HEADERS', style: Theme.of(context).textTheme.caption),
           ),
           buildHeadersViewer(
             context,
-            event.response.headers.entries,
+            event.response?.headers.entries ?? [],
           ),
         ],
         Padding(
           padding: const EdgeInsets.fromLTRB(15, 10, 15, 5),
           child: Text('BODY', style: Theme.of(context).textTheme.caption),
         ),
-        buildBodyViewer(context, event.response.data),
+        buildBodyViewer(context, event.response?.data),
       ],
     );
   }
@@ -395,7 +395,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final showResponse = event.response != null;
 
-    Widget bottom;
+    Widget? bottom;
     if (showResponse) {
       bottom = TabBar(tabs: [
         Tab(text: 'Request'),
@@ -409,7 +409,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Log Entry'),
-          bottom: bottom,
+          bottom: (bottom as PreferredSizeWidget?),
         ),
         body: Builder(
             builder: (context) => TabBarView(
@@ -425,7 +425,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
 
 /// Widget builder that re-builds widget repeatedly with [duration] interval.
 class AutoUpdate extends StatefulWidget {
-  const AutoUpdate({Key key, this.duration, this.builder}) : super(key: key);
+  const AutoUpdate({Key? key, required this.duration, required this.builder}) : super(key: key);
 
   /// Re-build interval.
   final Duration duration;
@@ -438,7 +438,7 @@ class AutoUpdate extends StatefulWidget {
 }
 
 class _AutoUpdateState extends State<AutoUpdate> {
-  Timer _timer;
+  Timer? _timer;
 
   void _setTimer() {
     _timer = Timer.periodic(widget.duration, (timer) {

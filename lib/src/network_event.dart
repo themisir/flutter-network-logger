@@ -1,20 +1,20 @@
 /// Network event log entry.
 class NetworkEvent {
-  NetworkEvent({this.request, this.response, this.error, this.timestamp});
+  NetworkEvent({this.request, this.response,  this.error, this.timestamp});
   NetworkEvent.now({this.request, this.response, this.error})
       : this.timestamp = DateTime.now();
 
-  Request request;
-  Response response;
-  NetworkError error;
-  DateTime timestamp;
+  Request? request;
+  Response? response;
+  NetworkError? error;
+  DateTime? timestamp;
 }
 
 /// Used for storing [Request] and [Response] headers.
 class Headers {
   Headers(Iterable<MapEntry<String, String>> entries)
       : this.entries = entries.toList();
-  Headers.fromMap(Map<String, String> map) : this.entries = map.entries;
+  Headers.fromMap(Map<String, String> map) : this.entries = map.entries as List<MapEntry<String, String>>;
 
   final List<MapEntry<String, String>> entries;
 
@@ -28,9 +28,9 @@ class Headers {
 /// Http request details.
 class Request {
   Request({
-    this.uri,
-    this.method,
-    this.headers,
+    required this.uri,
+    required this.method,
+    required this.headers,
     this.data,
   });
 
@@ -43,9 +43,9 @@ class Request {
 /// Http response details.
 class Response {
   Response({
-    this.headers,
-    this.statusCode,
-    this.statusMessage,
+    required this.headers,
+    required this.statusCode,
+    required this.statusMessage,
     this.data,
   });
 
@@ -57,7 +57,7 @@ class Response {
 
 /// Network error details.
 class NetworkError {
-  NetworkError({this.message});
+  NetworkError({required this.message});
 
   final String message;
 
