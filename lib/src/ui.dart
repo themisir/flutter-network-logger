@@ -139,6 +139,16 @@ class NetworkLoggerScreen extends StatelessWidget {
   final TextEditingController searchController =
       TextEditingController(text: null);
 
+  List<NetworkEvent> getEvents() {
+    final events = eventList.events.where((element) {
+      if (searchController.text.length > 0) {
+        return (element.request?.uri.toLowerCase().contains(searchController.text.toLowerCase()) ?? false);
+      }
+      return true;
+    }).toList();
+    return events;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,6 +168,7 @@ class NetworkLoggerScreen extends StatelessWidget {
             onChanged: (text) {
               eventList.updated(NetworkEvent());
             },
+            autocorrect: false,
             textAlignVertical: TextAlignVertical.center,
             decoration: InputDecoration(
               filled: true,
@@ -166,6 +177,9 @@ class NetworkLoggerScreen extends StatelessWidget {
                 Icons.search,
                 color: Colors.black26,
               ),
+              suffix: StreamBuilder(stream: eventList.stream, builder: (context, snapshot){
+                return Text(getEvents().length.toString() + '记录');
+              },),
               border: OutlineInputBorder(
                 borderRadius: const BorderRadius.all(
                   const Radius.circular(10.0),
@@ -185,14 +199,7 @@ class NetworkLoggerScreen extends StatelessWidget {
               stream: eventList.stream,
               builder: (context, snapshot) {
                 //过滤关键字
-                final events = eventList.events.where((element) {
-                  if (searchController.text.length > 0) {
-                    return (element.request?.uri
-                            .contains(searchController.text) ??
-                        false);
-                  }
-                  return true;
-                }).toList();
+                final events = getEvents();
                 return ListView.builder(
                   itemCount: events.length,
                   itemBuilder: enumerateItems<NetworkEvent>(
