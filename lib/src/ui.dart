@@ -138,7 +138,8 @@ class NetworkLoggerScreen extends StatelessWidget {
 
   final TextEditingController searchController =
       TextEditingController(text: null);
-
+      
+  /// filte events with search keyword
   List<NetworkEvent> getEvents() {
     final events = eventList.events.where((element) {
       if (searchController.text.length > 0) {
@@ -178,18 +179,13 @@ class NetworkLoggerScreen extends StatelessWidget {
                 color: Colors.black26,
               ),
               suffix: StreamBuilder(stream: eventList.stream, builder: (context, snapshot){
-                return Text(getEvents().length.toString() + '记录');
+                return Text(getEvents().length.toString() + ' results');
               },),
-              border: OutlineInputBorder(
-                borderRadius: const BorderRadius.all(
-                  const Radius.circular(10.0),
-                ),
-              ),
-              hintText: "过滤",
+              hintText: "enter keyword to search",
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white),
                 borderRadius: const BorderRadius.all(
-                  const Radius.circular(10.0),
+                  const Radius.circular(0.0),
                 ),
               ),
             ),
@@ -198,7 +194,7 @@ class NetworkLoggerScreen extends StatelessWidget {
             child: StreamBuilder(
               stream: eventList.stream,
               builder: (context, snapshot) {
-                //过滤关键字
+                //filte events with search keyword
                 final events = getEvents();
                 return ListView.builder(
                   itemCount: events.length,
