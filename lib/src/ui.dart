@@ -136,6 +136,9 @@ class NetworkLoggerScreen extends StatelessWidget {
     );
   }
 
+  final TextEditingController searchController =
+      TextEditingController(text: null);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,42 +151,87 @@ class NetworkLoggerScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: StreamBuilder(
-        stream: eventList.stream,
-        builder: (context, snapshot) => ListView.builder(
-          itemCount: eventList.events.length,
-          itemBuilder: enumerateItems<NetworkEvent>(
-            eventList.events,
-            (context, item) => ListTile(
-              key: ValueKey(item.request),
-              title: Text(
-                item.request!.method,
-                style: TextStyle(fontWeight: FontWeight.bold),
+      body: Column(
+        children: [
+          TextField(
+            controller: searchController,
+            onChanged: (text) {
+              eventList.updated(NetworkEvent());
+            },
+            textAlignVertical: TextAlignVertical.center,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              prefixIcon: Icon(
+                Icons.search,
+                color: Colors.black26,
               ),
-              subtitle: Text(
-                item.request!.uri.toString(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              border: OutlineInputBorder(
+                borderRadius: const BorderRadius.all(
+                  const Radius.circular(10.0),
+                ),
               ),
-              leading: Icon(
-                item.error == null
-                    ? (item.response == null
-                        ? Icons.hourglass_empty
-                        : Icons.done)
-                    : Icons.error,
-              ),
-              trailing: AutoUpdate(
-                duration: Duration(seconds: 1),
-                builder: (context) => Text(_timeDifference(item.timestamp!)),
-              ),
-              onTap: () => NetworkLoggerEventScreen.open(
-                context,
-                item,
-                eventList,
+              hintText: "过滤",
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.white),
+                borderRadius: const BorderRadius.all(
+                  const Radius.circular(10.0),
+                ),
               ),
             ),
           ),
-        ),
+          Expanded(
+            child: StreamBuilder(
+              stream: eventList.stream,
+              builder: (context, snapshot) {
+                //过滤关键字
+                final events = eventList.events.where((element) {
+                  if (searchController.text.length > 0) {
+                    return (element.request?.uri
+                            .contains(searchController.text) ??
+                        false);
+                  }
+                  return true;
+                }).toList();
+                return ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: enumerateItems<NetworkEvent>(
+                    events,
+                    (context, item) => ListTile(
+                      key: ValueKey(item.request),
+                      title: Text(
+                        item.request!.method,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        item.request!.uri.toString(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      leading: Icon(
+                        item.error == null
+                            ? (item.response == null
+                                ? Icons.hourglass_empty
+                                : Icons.done)
+                            : Icons.error,
+                      ),
+                      trailing: AutoUpdate(
+                        duration: Duration(seconds: 1),
+                        builder: (context) =>
+                            Text(_timeDifference(item.timestamp!)),
+                      ),
+                      onTap: () => NetworkLoggerEventScreen.open(
+                        context,
+                        item,
+                        eventList,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          )
+        ],
       ),
     );
   }
@@ -205,7 +253,8 @@ final _jsonEncoder = JsonEncoder.withIndent('  ');
 
 /// Screen that displays log entry details.
 class NetworkLoggerEventScreen extends StatelessWidget {
-  const NetworkLoggerEventScreen({Key? key, required this.event}) : super(key: key);
+  const NetworkLoggerEventScreen({Key? key, required this.event})
+      : super(key: key);
 
   /// Opens screen.
   static Future<void> open(
@@ -425,7 +474,8 @@ class NetworkLoggerEventScreen extends StatelessWidget {
 
 /// Widget builder that re-builds widget repeatedly with [duration] interval.
 class AutoUpdate extends StatefulWidget {
-  const AutoUpdate({Key? key, required this.duration, required this.builder}) : super(key: key);
+  const AutoUpdate({Key? key, required this.duration, required this.builder})
+      : super(key: key);
 
   /// Re-build interval.
   final Duration duration;
