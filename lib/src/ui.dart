@@ -77,7 +77,7 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
   @override
   void initState() {
     _subscription = NetworkLogger.instance.stream.listen((event) {
-      if (event != null && mounted) {
+      if (mounted) {
         setState(() {
           _blink = _blink % 2 == 0 ? 6 : 5;
         });
@@ -298,7 +298,7 @@ class NetworkLoggerEventScreen extends StatelessWidget {
       child: GestureDetector(
         onLongPress: () {
           Clipboard.setData(ClipboardData(text: text));
-          Scaffold.of(context).showSnackBar(SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Copied to clipboard'),
             behavior: SnackBarBehavior.floating,
           ));

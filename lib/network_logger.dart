@@ -4,4 +4,4 @@ export 'src/network_logger.dart';
 export 'src/ui.dart'
     show NetworkLoggerScreen, NetworkLoggerButton, NetworkLoggerOverlay;
 
-export 'src/impl/dio.dart';
+export 'src/channels/dio.dart';
