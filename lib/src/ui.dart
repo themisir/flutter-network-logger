@@ -136,56 +136,101 @@ class NetworkLoggerScreen extends StatelessWidget {
     );
   }
 
+  final TextEditingController searchController =
+      TextEditingController(text: null);
+
+  /// filte events with search keyword
+  List<NetworkEvent> getEvents() {
+    if (searchController.text.isEmpty) return eventList.events;
+    final query = searchController.text.toLowerCase();
+    return eventList.events
+        .where((it) => it.request?.uri.toLowerCase().contains(query) ?? false)
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Network Logs'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () => eventList.clear(),
-          ),
-        ],
-      ),
-      body: StreamBuilder(
-        stream: eventList.stream,
-        builder: (context, snapshot) => ListView.builder(
-          itemCount: eventList.events.length,
-          itemBuilder: enumerateItems<NetworkEvent>(
-            eventList.events,
-            (context, item) => ListTile(
-              key: ValueKey(item.request),
-              title: Text(
-                item.request!.method,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                item.request!.uri.toString(),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              leading: Icon(
-                item.error == null
-                    ? (item.response == null
-                        ? Icons.hourglass_empty
-                        : Icons.done)
-                    : Icons.error,
-              ),
-              trailing: AutoUpdate(
-                duration: Duration(seconds: 1),
-                builder: (context) => Text(_timeDifference(item.timestamp!)),
-              ),
-              onTap: () => NetworkLoggerEventScreen.open(
-                context,
-                item,
-                eventList,
-              ),
+        appBar: AppBar(
+          title: Text('Network Logs'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () => eventList.clear(),
             ),
-          ),
+          ],
         ),
-      ),
-    );
+        body: StreamBuilder(
+            stream: eventList.stream,
+            builder: (context, snapshot) {
+              //filte events with search keyword
+              final events = getEvents();
+              return Column(
+                children: [
+                  TextField(
+                    controller: searchController,
+                    onChanged: (text) {
+                      eventList.updated(NetworkEvent());
+                    },
+                    autocorrect: false,
+                    textAlignVertical: TextAlignVertical.center,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.black26,
+                      ),
+                      suffix: Text(getEvents().length.toString() + ' results'),
+                      hintText: "enter keyword to search",
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
+                        borderRadius: const BorderRadius.all(
+                          const Radius.circular(0.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: enumerateItems<NetworkEvent>(
+                        events,
+                        (context, item) => ListTile(
+                          key: ValueKey(item.request),
+                          title: Text(
+                            item.request!.method,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            item.request!.uri.toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          leading: Icon(
+                            item.error == null
+                                ? (item.response == null
+                                    ? Icons.hourglass_empty
+                                    : Icons.done)
+                                : Icons.error,
+                          ),
+                          trailing: AutoUpdate(
+                            duration: Duration(seconds: 1),
+                            builder: (context) =>
+                                Text(_timeDifference(item.timestamp!)),
+                          ),
+                          onTap: () => NetworkLoggerEventScreen.open(
+                            context,
+                            item,
+                            eventList,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              );
+            }));
   }
 }
 
