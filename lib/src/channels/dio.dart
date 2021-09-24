@@ -28,14 +28,13 @@ class DioNetworkLogger extends dio.Interceptor {
     dio.ResponseInterceptorHandler handler,
   ) {
     super.onResponse(response, handler);
-    final req = response.requestOptions.toRequest();
-    var event = _requests[req];
+    var event = _requests[response.requestOptions];
     if (event != null) {
-      _requests.remove(req);
+      _requests.remove(response.requestOptions);
       eventList.updated(event..response = response.toResponse());
     } else {
       eventList.add(NetworkEvent.now(
-        request: req,
+        request: response.requestOptions.toRequest(),
         response: response.toResponse(),
       ));
     }
@@ -44,14 +43,13 @@ class DioNetworkLogger extends dio.Interceptor {
   @override
   void onError(dio.DioError err, dio.ErrorInterceptorHandler handler) {
     super.onError(err, handler);
-    final req = err.requestOptions.toRequest();
-    var event = _requests[req];
+    var event = _requests[err.requestOptions];
     if (event != null) {
-      _requests.remove(req);
+      _requests.remove(err.requestOptions);
       eventList.updated(event..error = err.toNetworkError());
     } else {
       eventList.add(NetworkEvent.now(
-        request: req,
+        request: err.requestOptions.toRequest(),
         response: err.response?.toResponse(),
         error: err.toNetworkError(),
       ));
