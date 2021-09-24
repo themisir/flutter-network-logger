@@ -151,86 +151,88 @@ class NetworkLoggerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Network Logs'),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () => eventList.clear(),
-            ),
-          ],
-        ),
-        body: StreamBuilder(
-            stream: eventList.stream,
-            builder: (context, snapshot) {
-              //filte events with search keyword
-              final events = getEvents();
-              return Column(
-                children: [
-                  TextField(
-                    controller: searchController,
-                    onChanged: (text) {
-                      eventList.updated(NetworkEvent());
-                    },
-                    autocorrect: false,
-                    textAlignVertical: TextAlignVertical.center,
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white,
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Colors.black26,
+      appBar: AppBar(
+        title: Text('Network Logs'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () => eventList.clear(),
+          ),
+        ],
+      ),
+      body: StreamBuilder(
+        stream: eventList.stream,
+        builder: (context, snapshot) {
+          //filte events with search keyword
+          final events = getEvents();
+          return Column(
+            children: [
+              TextField(
+                controller: searchController,
+                onChanged: (text) {
+                  eventList.updated(NetworkEvent());
+                },
+                autocorrect: false,
+                textAlignVertical: TextAlignVertical.center,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.black26,
+                  ),
+                  suffix: Text(getEvents().length.toString() + ' results'),
+                  hintText: "enter keyword to search",
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                    borderRadius: const BorderRadius.all(
+                      const Radius.circular(0.0),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: events.length,
+                  itemBuilder: enumerateItems<NetworkEvent>(
+                    events,
+                    (context, item) => ListTile(
+                      key: ValueKey(item.request),
+                      title: Text(
+                        item.request!.method,
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      suffix: Text(getEvents().length.toString() + ' results'),
-                      hintText: "enter keyword to search",
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: const BorderRadius.all(
-                          const Radius.circular(0.0),
-                        ),
+                      subtitle: Text(
+                        item.request!.uri.toString(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      leading: Icon(
+                        item.error == null
+                            ? (item.response == null
+                                ? Icons.hourglass_empty
+                                : Icons.done)
+                            : Icons.error,
+                      ),
+                      trailing: AutoUpdate(
+                        duration: Duration(seconds: 1),
+                        builder: (context) =>
+                            Text(_timeDifference(item.timestamp!)),
+                      ),
+                      onTap: () => NetworkLoggerEventScreen.open(
+                        context,
+                        item,
+                        eventList,
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: events.length,
-                      itemBuilder: enumerateItems<NetworkEvent>(
-                        events,
-                        (context, item) => ListTile(
-                          key: ValueKey(item.request),
-                          title: Text(
-                            item.request!.method,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            item.request!.uri.toString(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          leading: Icon(
-                            item.error == null
-                                ? (item.response == null
-                                    ? Icons.hourglass_empty
-                                    : Icons.done)
-                                : Icons.error,
-                          ),
-                          trailing: AutoUpdate(
-                            duration: Duration(seconds: 1),
-                            builder: (context) =>
-                                Text(_timeDifference(item.timestamp!)),
-                          ),
-                          onTap: () => NetworkLoggerEventScreen.open(
-                            context,
-                            item,
-                            eventList,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              );
-            }));
+                ),
+              )
+            ],
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -253,23 +255,28 @@ class NetworkLoggerEventScreen extends StatelessWidget {
   const NetworkLoggerEventScreen({Key? key, required this.event})
       : super(key: key);
 
+  static Route<void> route({
+    required NetworkEvent event,
+    required NetworkEventList eventList,
+  }) {
+    return MaterialPageRoute(
+      builder: (context) => StreamBuilder(
+        stream: eventList.stream.where((item) => item.event == event),
+        builder: (context, snapshot) => NetworkLoggerEventScreen(event: event),
+      ),
+    );
+  }
+
   /// Opens screen.
   static Future<void> open(
     BuildContext context,
     NetworkEvent event,
     NetworkEventList eventList,
   ) {
-    return Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => StreamBuilder(
-          stream: eventList.stream.where((item) => item.event == event),
-          builder: (context, snapshot) => NetworkLoggerEventScreen(
-            event: event,
-          ),
-        ),
-      ),
-    );
+    return Navigator.of(context).push(route(
+      event: event,
+      eventList: eventList,
+    ));
   }
 
   /// Which event to display details for.
