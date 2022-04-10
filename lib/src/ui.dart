@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -37,14 +38,23 @@ class NetworkLoggerOverlay extends StatelessWidget {
 
 /// [FloatingActionButton] that opens [NetworkLoggerScreen] when pressed.
 class NetworkLoggerButton extends StatefulWidget {
+  /// Source event list (default: [NetworkLogger.instance])
   final NetworkEventList? eventList;
+
+  /// Blink animation period
   final Duration blinkPeriod;
+
+  // Button background color
   final Color color;
+
+  /// If set to true this button will be hidden on non-debug builds.
+  final bool showOnlyOnDebug;
 
   NetworkLoggerButton({
     Key? key,
     this.color = Colors.deepPurple,
     this.blinkPeriod = const Duration(seconds: 1, microseconds: 500),
+    this.showOnlyOnDebug = false,
     NetworkEventList? eventList,
   })  : this.eventList = eventList ?? NetworkLogger.instance,
         super(key: key);
@@ -104,16 +114,21 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
 
   @override
   Widget build(BuildContext context) {
-    return _visible
-        ? FloatingActionButton(
-            child: Icon(
-              (_blink % 2 == 0) ? Icons.cloud : Icons.cloud_queue,
-              color: Colors.white,
-            ),
-            onPressed: _press,
-            backgroundColor: widget.color,
-          )
-        : SizedBox();
+    if (!_visible) {
+      return const SizedBox();
+    }
+
+    return _DebugOnly(
+      enabled: widget.showOnlyOnDebug,
+      child: FloatingActionButton(
+        child: Icon(
+          (_blink % 2 == 0) ? Icons.cloud : Icons.cloud_queue,
+          color: Colors.white,
+        ),
+        onPressed: _press,
+        backgroundColor: widget.color,
+      ),
+    );
   }
 }
 
@@ -142,6 +157,7 @@ class NetworkLoggerScreen extends StatelessWidget {
   /// filte events with search keyword
   List<NetworkEvent> getEvents() {
     if (searchController.text.isEmpty) return eventList.events;
+
     final query = searchController.text.toLowerCase();
     return eventList.events
         .where((it) => it.request?.uri.toLowerCase().contains(query) ?? false)
@@ -163,8 +179,9 @@ class NetworkLoggerScreen extends StatelessWidget {
       body: StreamBuilder(
         stream: eventList.stream,
         builder: (context, snapshot) {
-          //filte events with search keyword
+          // filter events with search keyword
           final events = getEvents();
+
           return Column(
             children: [
               TextField(
@@ -177,18 +194,14 @@ class NetworkLoggerScreen extends StatelessWidget {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Colors.black26,
+                  prefixIcon: const Icon(Icons.search, color: Colors.black26),
+                  suffix: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: searchController,
+                    builder: (context, value, child) => value.text.isNotEmpty
+                        ? Text(getEvents().length.toString() + ' results')
+                        : const SizedBox(),
                   ),
-                  suffix: Text(getEvents().length.toString() + ' results'),
                   hintText: "enter keyword to search",
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
-                    borderRadius: const BorderRadius.all(
-                      const Radius.circular(0.0),
-                    ),
-                  ),
                 ),
               ),
               Expanded(
@@ -214,7 +227,7 @@ class NetworkLoggerScreen extends StatelessWidget {
                                 : Icons.done)
                             : Icons.error,
                       ),
-                      trailing: AutoUpdate(
+                      trailing: _AutoUpdate(
                         duration: Duration(seconds: 1),
                         builder: (context) =>
                             Text(_timeDifference(item.timestamp!)),
@@ -477,8 +490,8 @@ class NetworkLoggerEventScreen extends StatelessWidget {
 }
 
 /// Widget builder that re-builds widget repeatedly with [duration] interval.
-class AutoUpdate extends StatefulWidget {
-  const AutoUpdate({Key? key, required this.duration, required this.builder})
+class _AutoUpdate extends StatefulWidget {
+  const _AutoUpdate({Key? key, required this.duration, required this.builder})
       : super(key: key);
 
   /// Re-build interval.
@@ -491,19 +504,19 @@ class AutoUpdate extends StatefulWidget {
   _AutoUpdateState createState() => _AutoUpdateState();
 }
 
-class _AutoUpdateState extends State<AutoUpdate> {
+class _AutoUpdateState extends State<_AutoUpdate> {
   Timer? _timer;
 
   void _setTimer() {
+    _timer?.cancel();
     _timer = Timer.periodic(widget.duration, (timer) {
       setState(() {});
     });
   }
 
   @override
-  void didUpdateWidget(AutoUpdate old) {
+  void didUpdateWidget(_AutoUpdate old) {
     if (old.duration != widget.duration) {
-      _timer?.cancel();
       _setTimer();
     }
     super.didUpdateWidget(old);
@@ -524,5 +537,23 @@ class _AutoUpdateState extends State<AutoUpdate> {
   @override
   Widget build(BuildContext context) {
     return widget.builder(context);
+  }
+}
+
+class _DebugOnly extends StatelessWidget {
+  const _DebugOnly({Key? key, required this.enabled, required this.child})
+      : super(key: key);
+
+  final bool enabled;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (enabled) {
+      if (!kDebugMode) {
+        return const SizedBox();
+      }
+    }
+    return child;
   }
 }

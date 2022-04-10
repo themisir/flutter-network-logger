@@ -1,6 +1,6 @@
 /// Network event log entry.
 class NetworkEvent {
-  NetworkEvent({this.request, this.response,  this.error, this.timestamp});
+  NetworkEvent({this.request, this.response, this.error, this.timestamp});
   NetworkEvent.now({this.request, this.response, this.error})
       : this.timestamp = DateTime.now();
 
@@ -14,7 +14,8 @@ class NetworkEvent {
 class Headers {
   Headers(Iterable<MapEntry<String, String>> entries)
       : this.entries = entries.toList();
-  Headers.fromMap(Map<String, String> map) : this.entries = map.entries as List<MapEntry<String, String>>;
+  Headers.fromMap(Map<String, String> map)
+      : this.entries = map.entries as List<MapEntry<String, String>>;
 
   final List<MapEntry<String, String>> entries;
 

@@ -1,3 +1,9 @@
+## 1.0.1
+
+- Fixed dio interceptor [#5](https://github.com/themisir/flutter-network-logger/issues/5)
+- Added option to hide `NetworkLoggerButton` on non-debug builds
+- Minor changes
+
 ## 1.0.0
 
 - Migrated to null-safety

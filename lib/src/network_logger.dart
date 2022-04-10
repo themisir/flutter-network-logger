@@ -4,8 +4,10 @@ import 'network_event.dart';
 
 /// List that contains network events and notifies dependents on updates.
 class NetworkEventList {
-  final events = <NetworkEvent>[];
   final _controller = StreamController<UpdateEvent>.broadcast();
+
+  /// Logged network events
+  final events = <NetworkEvent>[];
 
   /// A source of asynchronous network events.
   Stream<UpdateEvent> get stream => _controller.stream;
