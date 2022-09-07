@@ -9,18 +9,24 @@ import 'enumerate_items.dart';
 import 'network_event.dart';
 import 'network_logger.dart';
 
+
 /// Overlay for [NetworkLoggerButton].
-class NetworkLoggerOverlay extends StatelessWidget {
-  NetworkLoggerOverlay._({Key? key}) : super(key: key);
+class NetworkLoggerOverlay extends StatefulWidget {
+  NetworkLoggerOverlay._({ this.right, this.bottom, Key? key}) : super(key: key);
+
+  double ? bottom;
+  double ? right;
 
   /// Attach overlay to specified [context].
   static OverlayEntry attachTo(
-    BuildContext context, {
-    bool rootOverlay = true,
-  }) {
+      BuildContext context, {
+        bool rootOverlay = true,
+        double? bottom,
+        double? right,
+      }) {
     // create overlay entry
-    var entry = OverlayEntry(
-      builder: (context) => NetworkLoggerOverlay._(),
+    final entry = OverlayEntry(
+      builder: (context) => NetworkLoggerOverlay._(bottom: bottom, right: right),
     );
     // insert on next frame
     Future.delayed(Duration.zero, () {
@@ -40,10 +46,59 @@ class NetworkLoggerOverlay extends StatelessWidget {
   }
 
   @override
+  State < NetworkLoggerOverlay > createState() => _NetworkLoggerOverlayState();
+}
+
+class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
+  late double bottom = widget.bottom ?? 30;
+  late double right = widget.right ?? 30;
+
+  late Size screenSize;
+  static const Size buttonSize = Size(57, 57);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    screenSize = MediaQuery.of(context).size;
+  }
+
+  void onPanUpdate(DragUpdateDetails details) {
+    bottom -= details.delta.dy;
+    right -= details.delta.dx;
+
+    /// Checks if the button went of screen
+    if (bottom < 0) {
+      bottom = 0;
+    }
+
+    if (right < 0) {
+      right = 0;
+    }
+
+    if (bottom + buttonSize.height > screenSize.height) {
+      bottom = screenSize.height - buttonSize.height;
+    }
+
+    if (right + buttonSize.width > screenSize.width) {
+      right = screenSize.width - buttonSize.width;
+    }
+
+    setState(() { });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Positioned(right: 30, bottom: 100, child: NetworkLoggerButton());
+    return Positioned(
+      right: right,
+      bottom: bottom,
+      child: GestureDetector(
+        onPanUpdate: onPanUpdate,
+        child: NetworkLoggerButton(),
+      ),
+    );
   }
 }
+
 
 /// [FloatingActionButton] that opens [NetworkLoggerScreen] when pressed.
 class NetworkLoggerButton extends StatefulWidget {
