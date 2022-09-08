@@ -1,3 +1,8 @@
+## 1.0.2
+
+- Updated overlay to make button draggable
+- Updated `NetworkLoggerButton` to support custom event lists
+
 ## 1.0.1
 
 - Fixed dio interceptor [#5](https://github.com/themisir/flutter-network-logger/issues/5)
