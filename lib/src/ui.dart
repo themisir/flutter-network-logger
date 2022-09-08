@@ -11,10 +11,12 @@ import 'network_logger.dart';
 
 /// Overlay for [NetworkLoggerButton].
 class NetworkLoggerOverlay extends StatefulWidget {
-  NetworkLoggerOverlay._({this.right, this.bottom, Key? key}) : super(key: key);
+  NetworkLoggerOverlay._({this.right, this.bottom, this.draggable = true, Key? key}) : super(key: key);
 
-  double? bottom;
-  double? right;
+  final double? bottom;
+  final double? right;
+
+  final bool draggable;
 
   /// Attach overlay to specified [context].
   static OverlayEntry attachTo(
@@ -26,10 +28,15 @@ class NetworkLoggerOverlay extends StatefulWidget {
 
     /// Initial distance from [NetworkLoggerButton] to right edge of screen
     double? right,
+    bool? draggable,
   }) {
     // create overlay entry
     final entry = OverlayEntry(
-      builder: (context) => NetworkLoggerOverlay._(bottom: bottom, right: right),
+      builder: (context) => NetworkLoggerOverlay._(
+        bottom: bottom,
+        right: right,
+        draggable: draggable ?? true,
+      ),
     );
     // insert on next frame
     Future.delayed(Duration.zero, () {
@@ -101,9 +108,9 @@ class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
       right: right,
       bottom: bottom,
       child: GestureDetector(
-        onLongPressMoveUpdate: onPanUpdate,
-        onLongPressDown: (details) => setState(() => lastPosition = details.localPosition),
-        onLongPressUp: () => setState(() => lastPosition = null),
+        onLongPressMoveUpdate: widget.draggable ? onPanUpdate : null,
+        onLongPressDown: (details) => widget.draggable ? setState(() => lastPosition = details.localPosition) : null,
+        onLongPressUp: () => widget.draggable ? setState(() => lastPosition = null) : null,
         child: Material(
           elevation: lastPosition == null ? 0 : 30,
           borderRadius: BorderRadius.all(Radius.circular(buttonSize.width)),
