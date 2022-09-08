@@ -11,7 +11,9 @@ import 'network_logger.dart';
 
 /// Overlay for [NetworkLoggerButton].
 class NetworkLoggerOverlay extends StatefulWidget {
-  NetworkLoggerOverlay._({
+  static const double _defaultPadding = 30;
+
+  const NetworkLoggerOverlay._({
     required this.right,
     required this.bottom,
     required this.draggable,
@@ -20,19 +22,16 @@ class NetworkLoggerOverlay extends StatefulWidget {
 
   final double bottom;
   final double right;
-
   final bool draggable;
 
-  /// Attach overlay to specified [context].
+  /// Attach overlay to specified [context]. The FAB will be draggable unless
+  /// [draggable] set to `false`. Initial distance from the button to the screen
+  /// edge can be configured using [bottom] and [right] parameters.
   static OverlayEntry attachTo(
     BuildContext context, {
     bool rootOverlay = true,
-
-    /// Initial distance from [NetworkLoggerButton] to bottom edge of screen
-    double bottom = 30,
-
-    /// Initial distance from [NetworkLoggerButton] to right edge of screen
-    double right = 30,
+    double bottom = _defaultPadding,
+    double right = _defaultPadding,
     bool draggable = true,
   }) {
     // create overlay entry
@@ -65,16 +64,17 @@ class NetworkLoggerOverlay extends StatefulWidget {
 }
 
 class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
+  static const Size buttonSize = Size(57, 57);
+
   late double bottom = widget.bottom;
   late double right = widget.right;
 
-  late Size screenSize;
-  static const Size buttonSize = Size(57, 57);
+  late MediaQueryData screen;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    screenSize = MediaQuery.of(context).size;
+    screen = MediaQuery.of(context);
   }
 
   Offset? lastPosition;
@@ -96,12 +96,12 @@ class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
       right = 0;
     }
 
-    if (bottom + buttonSize.height > screenSize.height) {
-      bottom = screenSize.height - buttonSize.height;
+    if (bottom + buttonSize.height > screen.size.height) {
+      bottom = screen.size.height - buttonSize.height;
     }
 
-    if (right + buttonSize.width > screenSize.width) {
-      right = screenSize.width - buttonSize.width;
+    if (right + buttonSize.width > screen.size.width) {
+      right = screen.size.width - buttonSize.width;
     }
 
     setState(() {});
@@ -109,19 +109,31 @@ class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      right: right,
-      bottom: bottom,
-      child: GestureDetector(
-        onLongPressMoveUpdate: widget.draggable ? onPanUpdate : null,
-        onLongPressDown: (details) => widget.draggable ? setState(() => lastPosition = details.localPosition) : null,
-        onLongPressUp: () => widget.draggable ? setState(() => lastPosition = null) : null,
-        child: Material(
-          elevation: lastPosition == null ? 0 : 30,
-          borderRadius: BorderRadius.all(Radius.circular(buttonSize.width)),
-          child: NetworkLoggerButton(),
+    if (widget.draggable) {
+      return Positioned(
+        right: right,
+        bottom: bottom,
+        child: GestureDetector(
+          onLongPressMoveUpdate: onPanUpdate,
+          onLongPressUp: () {
+            setState(() => lastPosition = null);
+          },
+          onLongPressDown: (details) {
+            setState(() => lastPosition = details.localPosition);
+          },
+          child: Material(
+            elevation: lastPosition == null ? 0 : 30,
+            borderRadius: BorderRadius.all(Radius.circular(buttonSize.width)),
+            child: NetworkLoggerButton(),
+          ),
         ),
-      ),
+      );
+    }
+
+    return Positioned(
+      right: widget.right + screen.padding.right,
+      bottom: widget.bottom + screen.padding.bottom,
+      child: NetworkLoggerButton(),
     );
   }
 }
@@ -241,14 +253,17 @@ class NetworkLoggerScreen extends StatelessWidget {
     );
   }
 
-  final TextEditingController searchController = TextEditingController(text: null);
+  final TextEditingController searchController =
+      TextEditingController(text: null);
 
   /// filte events with search keyword
   List<NetworkEvent> getEvents() {
     if (searchController.text.isEmpty) return eventList.events;
 
     final query = searchController.text.toLowerCase();
-    return eventList.events.where((it) => it.request?.uri.toLowerCase().contains(query) ?? false).toList();
+    return eventList.events
+        .where((it) => it.request?.uri.toLowerCase().contains(query) ?? false)
+        .toList();
   }
 
   @override
@@ -284,8 +299,9 @@ class NetworkLoggerScreen extends StatelessWidget {
                   prefixIcon: const Icon(Icons.search, color: Colors.black26),
                   suffix: ValueListenableBuilder<TextEditingValue>(
                     valueListenable: searchController,
-                    builder: (context, value, child) =>
-                        value.text.isNotEmpty ? Text(getEvents().length.toString() + ' results') : const SizedBox(),
+                    builder: (context, value, child) => value.text.isNotEmpty
+                        ? Text(getEvents().length.toString() + ' results')
+                        : const SizedBox(),
                   ),
                   hintText: "enter keyword to search",
                 ),
@@ -307,11 +323,16 @@ class NetworkLoggerScreen extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       leading: Icon(
-                        item.error == null ? (item.response == null ? Icons.hourglass_empty : Icons.done) : Icons.error,
+                        item.error == null
+                            ? (item.response == null
+                                ? Icons.hourglass_empty
+                                : Icons.done)
+                            : Icons.error,
                       ),
                       trailing: _AutoUpdate(
                         duration: Duration(seconds: 1),
-                        builder: (context) => Text(_timeDifference(item.timestamp!)),
+                        builder: (context) =>
+                            Text(_timeDifference(item.timestamp!)),
                       ),
                       onTap: () => NetworkLoggerEventScreen.open(
                         context,
@@ -346,7 +367,8 @@ final _jsonEncoder = JsonEncoder.withIndent('  ');
 
 /// Screen that displays log entry details.
 class NetworkLoggerEventScreen extends StatelessWidget {
-  const NetworkLoggerEventScreen({Key? key, required this.event}) : super(key: key);
+  const NetworkLoggerEventScreen({Key? key, required this.event})
+      : super(key: key);
 
   static Route<void> route({
     required NetworkEvent event,
@@ -571,7 +593,8 @@ class NetworkLoggerEventScreen extends StatelessWidget {
 
 /// Widget builder that re-builds widget repeatedly with [duration] interval.
 class _AutoUpdate extends StatefulWidget {
-  const _AutoUpdate({Key? key, required this.duration, required this.builder}) : super(key: key);
+  const _AutoUpdate({Key? key, required this.duration, required this.builder})
+      : super(key: key);
 
   /// Re-build interval.
   final Duration duration;
@@ -620,7 +643,8 @@ class _AutoUpdateState extends State<_AutoUpdate> {
 }
 
 class _DebugOnly extends StatelessWidget {
-  const _DebugOnly({Key? key, required this.enabled, required this.child}) : super(key: key);
+  const _DebugOnly({Key? key, required this.enabled, required this.child})
+      : super(key: key);
 
   final bool enabled;
   final Widget child;
