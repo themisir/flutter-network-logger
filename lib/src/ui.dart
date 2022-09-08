@@ -11,10 +11,15 @@ import 'network_logger.dart';
 
 /// Overlay for [NetworkLoggerButton].
 class NetworkLoggerOverlay extends StatefulWidget {
-  NetworkLoggerOverlay._({this.right, this.bottom, this.draggable = true, Key? key}) : super(key: key);
+  NetworkLoggerOverlay._({
+    required this.right,
+    required this.bottom,
+    required this.draggable,
+    Key? key,
+  }) : super(key: key);
 
-  final double? bottom;
-  final double? right;
+  final double bottom;
+  final double right;
 
   final bool draggable;
 
@@ -24,18 +29,18 @@ class NetworkLoggerOverlay extends StatefulWidget {
     bool rootOverlay = true,
 
     /// Initial distance from [NetworkLoggerButton] to bottom edge of screen
-    double? bottom,
+    double bottom = 30,
 
     /// Initial distance from [NetworkLoggerButton] to right edge of screen
-    double? right,
-    bool? draggable,
+    double right = 30,
+    bool draggable = true,
   }) {
     // create overlay entry
     final entry = OverlayEntry(
       builder: (context) => NetworkLoggerOverlay._(
         bottom: bottom,
         right: right,
-        draggable: draggable ?? true,
+        draggable: draggable,
       ),
     );
     // insert on next frame
@@ -60,8 +65,8 @@ class NetworkLoggerOverlay extends StatefulWidget {
 }
 
 class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
-  late double bottom = widget.bottom ?? 30;
-  late double right = widget.right ?? 30;
+  late double bottom = widget.bottom;
+  late double right = widget.right;
 
   late Size screenSize;
   static const Size buttonSize = Size(57, 57);
