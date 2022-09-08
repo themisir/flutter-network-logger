@@ -141,7 +141,7 @@ class _NetworkLoggerOverlayState extends State<NetworkLoggerOverlay> {
 /// [FloatingActionButton] that opens [NetworkLoggerScreen] when pressed.
 class NetworkLoggerButton extends StatefulWidget {
   /// Source event list (default: [NetworkLogger.instance])
-  final NetworkEventList? eventList;
+  final NetworkEventList eventList;
 
   /// Blink animation period
   final Duration blinkPeriod;
@@ -176,7 +176,7 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
       _visible = false;
     });
     try {
-      await NetworkLoggerScreen.open(context);
+      await NetworkLoggerScreen.open(context, eventList: widget.eventList);
     } finally {
       if (mounted) {
         setState(() {
@@ -187,15 +187,27 @@ class _NetworkLoggerButtonState extends State<NetworkLoggerButton> {
   }
 
   @override
-  void initState() {
-    _subscription = NetworkLogger.instance.stream.listen((event) {
+  void didUpdateWidget(covariant NetworkLoggerButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.eventList != widget.eventList) {
+      _subscription?.cancel();
+      _subscribe();
+    }
+  }
+
+  void _subscribe() {
+    _subscription = widget.eventList.stream.listen((event) {
       if (mounted) {
         setState(() {
           _blink = _blink % 2 == 0 ? 6 : 5;
         });
       }
     });
+  }
 
+  @override
+  void initState() {
+    _subscribe();
     _blinkTimer = Timer.periodic(widget.blinkPeriod, (timer) {
       if (_blink > 0 && mounted) {
         setState(() {
@@ -244,11 +256,14 @@ class NetworkLoggerScreen extends StatelessWidget {
   final NetworkEventList eventList;
 
   /// Opens screen.
-  static Future<void> open(BuildContext context) {
+  static Future<void> open(
+    BuildContext context, {
+    NetworkEventList? eventList,
+  }) {
     return Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => NetworkLoggerScreen(),
+        builder: (context) => NetworkLoggerScreen(eventList: eventList),
       ),
     );
   }
