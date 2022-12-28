@@ -46,7 +46,7 @@ class DioNetworkLogger extends dio.Interceptor {
     var event = _requests[err.requestOptions];
     if (event != null) {
       _requests.remove(err.requestOptions);
-      eventList.updated(event..error = err.toNetworkError());
+      eventList.updated(event..error = err.toNetworkError()..response = err.response?.toResponse());
     } else {
       eventList.add(NetworkEvent.now(
         request: err.requestOptions.toRequest(),
