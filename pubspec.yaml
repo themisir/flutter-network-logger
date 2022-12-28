@@ -1,6 +1,6 @@
 name: network_logger
 description: Network logger with well designed user interface to inspect network traffic logs. Included with Dio interceptor.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/themisir/flutter-network-logger
 
 environment:

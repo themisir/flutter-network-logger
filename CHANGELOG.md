@@ -1,3 +1,7 @@
+## 1.0.3
+
+- Added responses to errored Dio requests [#11](https://github.com/themisir/flutter-network-logger/pull/11)
+
 ## 1.0.2
 
 - Updated overlay to make button draggable
