@@ -1,3 +1,8 @@
+## 1.0.4
+
+- Minor nits
+- Updated `dio` version constraints
+
 ## 1.0.3
 
 - Added responses to errored Dio requests [#11](https://github.com/themisir/flutter-network-logger/pull/11)
